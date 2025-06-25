@@ -41,7 +41,7 @@ public class CollectionManager {
         System.out.print("Enter card name: ");
         String name = scanner.nextLine().trim();
 
-        Card existing = findCardByName(name);
+        Card existing = collection.searchCard(name);
         if (existing != null) {
             System.out.println("Card already exists in the collection.");
             System.out.print("Would you like to increase the count by 1? (yes/no): ");
@@ -143,7 +143,7 @@ public class CollectionManager {
      * @param cardName the name of the card to manage
      */
     private void manageCardMenu(String cardName) {
-        Card card = findCardByName(cardName);
+        Card card = collection.searchCard(cardName);
         if (card == null) {
             System.out.println("Card not found.");
             return;
@@ -179,20 +179,5 @@ public class CollectionManager {
                     System.out.println("Invalid option.");
             }
         }
-    }
-
-    /**
-     * Finds and returns a card from the collection by name.
-     *
-     * @param name the name of the card to find
-     * @return the matching Card object, or null if not found
-     */
-    private Card findCardByName(String name) {
-        for (Card card : collection) {
-            if (card.getName().equalsIgnoreCase(name)) {
-                return card;
-            }
-        }
-        return null;
     }
 }
