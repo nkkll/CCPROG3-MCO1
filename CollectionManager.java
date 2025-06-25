@@ -17,7 +17,7 @@ import java.util.Scanner;
 public class CollectionManager {
 
     // The list of cards in the collection
-    private ArrayList<Card> collection;
+    private Collection collection;
 
     // Scanner for user input
     private Scanner scanner;
