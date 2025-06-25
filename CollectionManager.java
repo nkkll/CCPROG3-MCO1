@@ -28,7 +28,7 @@ public class CollectionManager {
      * @param collection the list of cards representing the collection
      * @param scanner    the Scanner used for user input
      */
-    public CollectionManager(ArrayList<Card> collection, Scanner scanner) {
+    public CollectionManager(Collection collection, Scanner scanner) {
         this.collection = collection;
         this.scanner = scanner;
     }
