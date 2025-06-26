@@ -41,14 +41,14 @@ public class Main {
 
             String choice = scanner.nextLine().trim();
 
-            switch (choice) {
+            switch (choice) {  //add conditions to case 2 and 3 (if collection !empty, change create to manage)
                 case "1":
                     collectionManager.addCardToCollection();
                     break;
-                case "2":
+                case "2": //should be changed to "Create a new Binder"
                     collectionManager.viewCollectionMenu();
                     break;
-                case "3":
+                case "3": //should be changed to "Create a new Deck"
                     decksMenu();
                     break;
                 case "4":
