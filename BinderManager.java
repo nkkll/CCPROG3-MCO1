@@ -1,0 +1,125 @@
+package com.CardSystem;
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class BinderManager {
+    private ArrayList<Binder> binders;
+    private Scanner sc;
+
+    public void binderManager(Scanner sc) {
+        boolean running = true;
+
+        while(running) {
+
+            if(binders.isEmpty()){
+                System.out.println("Select a name for a new binder");
+                String binderName = sc.nextLine();
+
+                binders.add(new Binder(binderName));
+            } else {
+                for (int i = 0; i < binders.size(); i++) {
+                    System.out.println("----Manage Binders----");
+                    System.out.println(binders.get(i).getName());
+                }
+
+                System.out.println("1. Create a New Binder");
+                System.out.println("2. Select a Binder");
+
+                int choice = sc.nextInt();
+
+                if (choice == 1) {
+                    System.out.println("Select a name for a new binder.");
+
+                    sc.nextLine();
+                    String newBinderName = sc.nextLine();
+
+                    if (addBinder(newBinderName)) {
+                        System.out.println("Binder created.");
+                    } else
+                        System.out.println("Binder creation failed.");
+                } else if (choice == 2) {
+                    System.out.println("Enter binder's name");
+
+                    String binderName = sc.nextLine();
+
+                    int index = searchBinder(binderName);
+                    if (index != -1) {
+                        binderMenu(binders.get(index));
+                    } else {
+                        System.out.println("Binder not found.");
+                    }
+                }
+            }
+        }
+    }
+    public BinderManager() {
+        binders = new ArrayList<>();
+        sc = new Scanner(System.in);
+    }
+
+    public boolean addBinder(String name) {
+        if (searchBinder(name) == -1) {
+            binders.add(new Binder(name));
+            return true;
+        }
+        return false;
+    }
+
+    public void binderMenu(Binder binder) {
+        System.out.println("----Manage Binder: " + binder.getName() + " ----");
+        System.out.println("1. Add a Card");
+        System.out.println("2. Remove a Card");
+        System.out.println("3. Trade Card");
+        System.out.println("4. View Binder");
+        System.out.println("5. Delete Binder");
+
+        int choice = sc.nextInt();
+
+        switch (choice) {
+            case 1:
+                System.out.println("Enter Card's information");
+                System.out.println("Name: ");
+                String newCardName = sc.nextLine();
+                System.out.println("Rarity: ");
+                String newCardRarity = sc.nextLine()
+                System.out.println("Variant: ");
+                String newCardVariant = sc.nextLine()
+                System.out.println("Base Value: ");
+                double newCardBValue = sc.nextDouble();
+                binder.addCard(new Card(newCardName, newCardRarity, newCardVariant, newCardBValue));
+                break;
+            case 2:
+                System.out.println("Enter the name of the card to be removed: ");
+                String removedCardName = sc.nextLine();
+                for(int i = 0; i < binder.getCards().size(); i++) {
+                    if(removedCardName.equalsIgnoreCase(binder.getCards().get(i).getName())) {
+                        Card returnCard = binder.returnCard(i);
+                    } else {
+                        System.out.println("Card " + removedCardName + " not found.");
+                    }
+                }
+                break;
+            case 3:
+                System.out.println("Enter card to be traded: ");
+                String outgoingCard = sc.nextLine();
+                System.out.println("Enter card to be traded for: ");
+                String incomingCard = sc.nextLine();
+
+
+                //declare collection, add incoming card to collection first then pass the cards to trademanager
+                //trade manager
+        }
+    }
+
+
+    public int searchBinder(String binderName) {
+        for(int i = 0; i < binders.size(); i++) {
+            if(binders.get(i).getName().equalsIgnoreCase(binderName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+}
