@@ -7,7 +7,7 @@ public class BinderManager {
     private ArrayList<Binder> binders;
     private Scanner sc;
 
-    public void binderManager(Scanner sc) {
+    public void start(Scanner sc) {
         boolean running = true;
 
         while(running) {
@@ -82,11 +82,13 @@ public class BinderManager {
                 System.out.println("Name: ");
                 String newCardName = sc.nextLine();
                 System.out.println("Rarity: ");
-                String newCardRarity = sc.nextLine()
+                String newCardRarity = sc.nextLine();
                 System.out.println("Variant: ");
-                String newCardVariant = sc.nextLine()
+                String newCardVariant = sc.nextLine();
                 System.out.println("Base Value: ");
                 double newCardBValue = sc.nextDouble();
+                sc.nextLine();
+                
                 binder.addCard(new Card(newCardName, newCardRarity, newCardVariant, newCardBValue));
                 break;
             case 2:
@@ -106,10 +108,21 @@ public class BinderManager {
                 System.out.println("Enter card to be traded for: ");
                 String incomingCard = sc.nextLine();
 
-
-                //declare collection, add incoming card to collection first then pass the cards to trademanager
-                //trade manager
-                trade(outgoingCard, incomingCard);
+                Card outgoing = binder.findCardByName(outgoingCardName);
+                Card incoming = new Card(incomingCardName, .., .., ..);
+                
+                if (trade(outgoing, incoming)) {
+                    System.out.println("Trade successful.");
+                } else {
+                    System.out.println("Trade cancelled.");
+                }
+                break;
+            case 4: 
+                binder.viewBinder();
+                break;
+            case 5:
+                
+                
         }
     }
 
