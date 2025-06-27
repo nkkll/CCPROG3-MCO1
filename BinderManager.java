@@ -7,7 +7,7 @@ public class BinderManager {
     private ArrayList<Binder> binders;
     private Scanner sc;
 
-    public void start(Scanner sc) {
+    public void start() {
         boolean running = true;
 
         while(running) {
@@ -27,6 +27,7 @@ public class BinderManager {
                 System.out.println("2. Select a Binder");
 
                 int choice = sc.nextInt();
+                sc.nextLine();
 
                 if (choice == 1) {
                     System.out.println("Select a name for a new binder.");
@@ -92,21 +93,24 @@ public class BinderManager {
                 binder.addCard(new Card(newCardName, newCardRarity, newCardVariant, newCardBValue));
                 break;
             case 2:
+                boolean found = false;
                 System.out.println("Enter the name of the card to be removed: ");
                 String removedCardName = sc.nextLine();
                 for(int i = 0; i < binder.getCards().size(); i++) {
                     if(removedCardName.equalsIgnoreCase(binder.getCards().get(i).getName())) {
                         Card returnCard = binder.returnCard(i);
-                    } else {
-                        System.out.println("Card " + removedCardName + " not found.");
-                    }
+                        found = true
+                    } 
+                }
+                if(!found) {
+                    System.out.println("Card " + removedCardName + " not found.");
                 }
                 break;
             case 3:
                 System.out.println("Enter card to be traded: ");
-                String outgoingCard = sc.nextLine();
+                String outgoingCardName = sc.nextLine();
                 System.out.println("Enter card to be traded for: ");
-                String incomingCard = sc.nextLine();
+                String incomingCardName = sc.nextLine();
 
                 Card outgoing = binder.findCardByName(outgoingCardName);
                 Card incoming = new Card(incomingCardName, .., .., ..);
@@ -121,8 +125,7 @@ public class BinderManager {
                 binder.viewBinder();
                 break;
             case 5:
-                
-                
+                break;
         }
     }
 
