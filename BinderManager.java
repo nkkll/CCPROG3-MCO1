@@ -125,6 +125,12 @@ public class BinderManager {
                 binder.viewBinder();
                 break;
             case 5:
+                System.out.println("Delete binder: " + binder.getName() + "?");
+                String deleteCh = sc.nextLine();
+                if(deleteCh.equalsIgnoreCase("Yes")) {
+                    binder.getCards();
+                    binder.returnCards();
+                }
                 break;
         }
     }
