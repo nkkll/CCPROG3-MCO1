@@ -1,9 +1,9 @@
 // File: Main.java
 // Description: Entry point for the Trading Card Inventory System (TCIS) program.
-// This class contains the main menu logic and manages interaction between the collection and deck system.
+// This class contains the main menu logic and manages interaction between the collection, deck, and binder system.
 // Authors: Kathryn Pulido, Anika Lumbania
 // Date Created: 06/24/2025
-// Last Updated: 06/24/2025
+// Last Updated: 07/26/2025
 
 import java.util.*;
 
@@ -13,45 +13,58 @@ import java.util.*;
  */
 public class Main {
 
-    // Collection of cards the user owns
-    private static ArrayList<Card> collection = new ArrayList<>();
-
-    // List of decks created by the user
+    /** List of decks created by the user */
     private static ArrayList<Deck> decks = new ArrayList<>();
 
-    // Scanner for user input
+    /** List of binders created by the user */
+    private static ArrayList<Binder> binders = new ArrayList<>();
+
+    /** Scanner for user input */
     private static Scanner scanner = new Scanner(System.in);
 
-    // Collection manager handles card-specific features
-    private static CollectionManager collectionManager = new CollectionManager(collection, scanner);
+    /** Collector manages collection and money */
+    private static Collector collector = new Collector(scanner);
 
     /**
      * Main method. Runs the primary menu and handles top-level navigation.
+     * 
+     * @param args Command-line arguments (not used)
      */
     public static void main(String[] args) {
         boolean running = true;
-
         while (running) {
             System.out.println("\n--- Trading Card Inventory System ---");
             System.out.println("1. Add a card");
             System.out.println("2. View collection");
-            System.out.println("3. Decks");
-            System.out.println("4. Exit");
+            System.out.println("3. Binders");
+            System.out.println("4. Decks");
+            System.out.println("5. Sell a card from collection");
+            System.out.println("6. View collector's money");
+            System.out.println("7. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
 
-            switch (choice) {  //add conditions to case 2 and 3 (if collection !empty, change create to manage)
+            switch (choice) {
                 case "1":
-                    collectionManager.addCardToCollection();
+                    collector.getCollection().addCardToCollection();
                     break;
-                case "2": //should be changed to "Create a new Binder"
-                    collectionManager.viewCollectionMenu();
+                case "2":
+                    collector.getCollection().viewCollectionMenu();
                     break;
-                case "3": //should be changed to "Create a new Deck"
-                    decksMenu();
+                case "3":
+                    Binder.openBinderMenu(binders, collector.getCollection().getCards(), collector, scanner);
                     break;
                 case "4":
+                    decksMenu();
+                    break;
+                case "5":
+                    sellCardFromCollection();
+                    break;
+                case "6":
+                    System.out.printf("Total Money: $%.2f\n", collector.getMoney());
+                    break;
+                case "7":
                     running = false;
                     System.out.println("Goodbye!");
                     break;
@@ -74,7 +87,8 @@ public class Main {
             System.out.println("1. Create a deck");
             System.out.println("2. Manage a deck");
             System.out.println("3. Delete a deck");
-            System.out.println("4. Go back");
+            System.out.println("4. Sell a deck");
+            System.out.println("5. Go back");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
@@ -90,6 +104,9 @@ public class Main {
                     deleteDeck();
                     break;
                 case "4":
+                    sellDeck();
+                    break;
+                case "5":
                     inDecks = false;
                     break;
                 default:
@@ -99,7 +116,7 @@ public class Main {
     }
 
     /**
-     * Allows user to create a new deck by entering a unique deck name.
+     * Allows user to create a new deck by entering a unique deck name and selecting its type.
      */
     private static void createDeck() {
         System.out.print("Enter a name for the new deck: ");
@@ -110,12 +127,33 @@ public class Main {
             return;
         }
 
-        decks.add(new Deck(deckName));
-        System.out.println("Deck \"" + deckName + "\" created.");
+        System.out.println("Select deck type:");
+        System.out.println("1. Normal Deck");
+        System.out.println("2. Sellable Deck");
+        System.out.print("Enter option: ");
+        String typeInput = scanner.nextLine().trim();
+
+        Deck newDeck = null;
+
+        switch (typeInput) {
+            case "1":
+                newDeck = new NormalDeck(deckName);
+                break;
+            case "2":
+                newDeck = new SellableDeck(deckName);
+                break;
+            default:
+                System.out.println("Invalid deck type.");
+                return;
+        }
+
+        decks.add(newDeck);
+        System.out.println(newDeck.getClass().getSimpleName() + " \"" + deckName + "\" created.");
     }
 
     /**
      * Allows user to manage a selected deck.
+     * Enables viewing, adding cards, or exiting the deck menu.
      */
     private static void manageDeck() {
         if (decks.isEmpty()) {
@@ -138,7 +176,7 @@ public class Main {
 
             switch (choice) {
                 case "1":
-                    selectedDeck.viewDeckInteractive(collection, scanner);
+                    selectedDeck.viewDeckInteractive(collector.getCollection().getCards(), scanner);
                     break;
                 case "2":
                     addCardToDeckMenu(selectedDeck);
@@ -159,7 +197,7 @@ public class Main {
      */
     private static void addCardToDeckMenu(Deck deck) {
         ArrayList<Card> availableCards = new ArrayList<>();
-        for (Card card : collection) {
+        for (Card card : collector.getCollection().getCards()) {
             if (card.getCount() > 0) {
                 availableCards.add(card);
             }
@@ -211,8 +249,56 @@ public class Main {
         if (selectedDeck == null) return;
 
         decks.remove(selectedDeck);
-        selectedDeck.returnAllCardsToCollection(collection);
+        selectedDeck.returnAllCardsToCollection(collector.getCollection().getCards());
         System.out.println("Deck \"" + selectedDeck.getName() + "\" deleted and its cards returned to the collection.");
+    }
+
+    /**
+     * Allows the user to sell a SellableDeck.
+     * The deck and its cards are permanently removed and the collector earns money.
+     */
+    private static void sellDeck() {
+        ArrayList<Deck> sellableDecks = new ArrayList<>();
+        for (Deck d : decks) {
+            if (d instanceof SellableDeck) {
+                sellableDecks.add(d);
+            }
+        }
+
+        if (sellableDecks.isEmpty()) {
+            System.out.println("No sellable decks available.");
+            return;
+        }
+
+        System.out.println("\nSellable Decks:");
+        for (int i = 0; i < sellableDecks.size(); i++) {
+            System.out.println((i + 1) + ". " + sellableDecks.get(i).getName());
+        }
+
+        System.out.print("Enter the number of the deck to sell: ");
+        String input = scanner.nextLine().trim();
+        int index;
+
+        try {
+            index = Integer.parseInt(input);
+            if (index < 1 || index > sellableDecks.size()) {
+                System.out.println("Invalid number.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+            return;
+        }
+
+        Deck selected = sellableDecks.get(index - 1);
+        double totalValue = 0;
+        for (Card card : selected.getCards()) {
+            totalValue += card.getActualValue();
+        }
+
+        collector.addMoney(totalValue);
+        decks.remove(selected);
+        System.out.printf("Sold deck \"%s\" for $%.2f.\n", selected.getName(), totalValue);
     }
 
     /**
@@ -248,10 +334,53 @@ public class Main {
     }
 
     /**
-     * Helper method to find a deck by name (case-insensitive).
+     * Displays a list of cards in the collection and allows the user to select one to sell.
+     */
+    private static void sellCardFromCollection() {
+        ArrayList<Card> sellableCards = new ArrayList<>();
+        for (Card card : collector.getCollection().getCards()) {
+            if (card.getCount() > 0) {
+                sellableCards.add(card);
+            }
+        }
+
+        if (sellableCards.isEmpty()) {
+            System.out.println("No cards available to sell.");
+            return;
+        }
+
+        Collections.sort(sellableCards, Comparator.comparing(Card::getName));
+
+        System.out.println("\nAvailable Cards to Sell:");
+        for (int i = 0; i < sellableCards.size(); i++) {
+            Card card = sellableCards.get(i);
+            System.out.println((i + 1) + ". " + card.getName() + " (Count: " + card.getCount() + ")");
+        }
+
+        System.out.print("Enter the number of the card to sell, or 0 to go back: ");
+        String input = scanner.nextLine().trim();
+
+        try {
+            int index = Integer.parseInt(input);
+            if (index == 0) return;
+            if (index < 1 || index > sellableCards.size()) {
+                System.out.println("Invalid number.");
+                return;
+            }
+
+            Card selected = sellableCards.get(index - 1);
+            collector.sellCard(selected.getName());
+
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+        }
+    }
+
+    /**
+     * Finds a deck by its name.
      * 
      * @param name The name of the deck.
-     * @return The Deck object if found, otherwise null.
+     * @return The Deck object or null if not found.
      */
     private static Deck findDeckByName(String name) {
         for (Deck deck : decks) {
