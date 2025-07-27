@@ -48,8 +48,8 @@ public class MainGUI extends JFrame {
         JPanel buttonPanel = new JPanel(new GridLayout(0, 1, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(40, 20, 40, 40));
 
-        addButton(buttonPanel, "Add a Card", () -> collector.getCollection().addCardToCollection());
-        addButton(buttonPanel, "View Collection", () -> collector.getCollection().viewCollectionMenu());
+        addButton(buttonPanel, "Add a Card", () -> collector.getCollection().addCardToCollection(this));
+        addButton(buttonPanel, "View Collection", () -> collector.getCollection().showCollection(this));
         addButton(buttonPanel, "Binders", () -> Binder.openBinderMenu(binders, collector.getCollection().getCards(), collector, null));
         addButton(buttonPanel, "Decks", this::handleDecksMenu);
         addButton(buttonPanel, "Sell Card", this::sellCardFromCollection);
@@ -63,12 +63,23 @@ public class MainGUI extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * A helper method that creates and adds a button to a given JPanel and
+     * sets its behavior as Runnable action.
+     * @param panel
+     * @param label
+     * @param action
+     */
     private void addButton(JPanel panel, String label, Runnable action) {
         JButton button = new JButton(label);
         button.addActionListener(e -> action.run());
         panel.add(button);
     }
 
+    /**
+     * A method that displays the Decks Menu through a JOptionPane and organizes
+     * the deck's functionalities.
+     */
     private void handleDecksMenu() {
         String[] options = {"Create Deck", "Manage Deck", "Delete Deck", "Sell Deck", "Cancel"};
         int choice = JOptionPane.showOptionDialog(this, "Choose a Deck option:", "Deck Menu",
@@ -83,6 +94,9 @@ public class MainGUI extends JFrame {
         }
     }
 
+    /**
+     * A method creating a Deck through JOptionPane
+     */
     private void createDeck() {
         String deckName = JOptionPane.showInputDialog(this, "Enter deck name:");
         if (deckName == null || deckName.trim().isEmpty()) return;
@@ -110,6 +124,9 @@ public class MainGUI extends JFrame {
         JOptionPane.showMessageDialog(this, newDeck.getClass().getSimpleName() + " \"" + deckName + "\" created.");
     }
 
+    /**
+     * A method allowing the user to manage a deck through JOptionPane
+     */
     private void manageDeck() {
         if (decks.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No decks available.");
@@ -119,9 +136,12 @@ public class MainGUI extends JFrame {
         Deck selected = selectDeck("Manage");
         if (selected == null) return;
 
-        selected.viewDeckInteractive(collector.getCollection().getCards(), null); 
+        selected.viewDeckGUI(this, collector.getCollection().getCards());
     }
 
+    /**
+     * A method allowing the user to delete a deck through a JOptionPane
+     */
     private void deleteDeck() {
         if (decks.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No decks to delete.");
@@ -136,6 +156,9 @@ public class MainGUI extends JFrame {
         JOptionPane.showMessageDialog(this, "Deck \"" + selected.getName() + "\" deleted.");
     }
 
+    /**
+     * A method allowing the user to sell a SellableDeck through a JOptionPane
+     */
     private void sellDeck() {
         ArrayList<Deck> sellableDecks = new ArrayList<>();
         for (Deck d : decks) {
@@ -162,6 +185,9 @@ public class MainGUI extends JFrame {
         JOptionPane.showMessageDialog(this, "Sold deck \"" + selected.getName() + "\" for $" + String.format("%.2f", totalValue));
     }
 
+    /**
+     * A method allowing the user to sell a card from their collection through a JOptionPane
+     */
     private void sellCardFromCollection() {
         ArrayList<Card> sellableCards = new ArrayList<>();
         for (Card card : collector.getCollection().getCards()) {
@@ -183,6 +209,11 @@ public class MainGUI extends JFrame {
         collector.sellCard(selectedCardName);
     }
 
+    /**
+     * A helper method used to find a deck by its name
+     * @param name the name of the deck to search for
+     * @return
+     */
     private Deck findDeckByName(String name) {
         for (Deck deck : decks) {
             if (deck.getName().equalsIgnoreCase(name)) return deck;
