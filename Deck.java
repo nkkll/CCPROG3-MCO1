@@ -12,15 +12,27 @@ public abstract class Deck {
     protected String name;
     protected ArrayList<Card> cards;
 
+    /**
+     * Constructs a deck given a name
+     * @param name
+     */
     public Deck(String name) {
         this.name = name;
         this.cards = new ArrayList<>();
     }
 
-    // Subclasses must implement these
+    /**
+     * methods that must be implemented by subclasses
+     * @return
+     */
     public abstract boolean canBeSold();
     public abstract double calculateSellPrice();
 
+    /**
+     * A method for adding a Card to a deck.
+     * @param card the new card to be added to deck
+     * @return true if added, otherwise false
+     */
     public boolean addCard(Card card) {
         if (cards.size() >= 10) {
             System.out.println("Deck is full. Maximum of 10 unique cards allowed.");
@@ -39,6 +51,11 @@ public abstract class Deck {
         return true;
     }
 
+    /**
+     * A method for removing a card from a deck given its index
+     * @param index the index of the card to be removed
+     * @return true if removed, otherwise false
+     */
     public boolean removeCardByIndex(int index) {
         if (index >= 0 && index < cards.size()) {
             Card removed = cards.remove(index);
@@ -49,6 +66,10 @@ public abstract class Deck {
         return false;
     }
 
+    /**
+     * A method returning all cards in a deck back to the collection
+     * @param collection the card collection a user has
+     */
     public void returnAllCardsToCollection(ArrayList<Card> collection) {
         for (Card card : cards) {
             int foundIndex = getCardIndexByName(collection, card.getName());
@@ -61,64 +82,120 @@ public abstract class Deck {
         cards.clear();
     }
 
-    public void viewDeckInteractive(ArrayList<Card> collection, Scanner scanner) {
-        if (cards.isEmpty()) {
-            System.out.println("Deck \"" + name + "\" is currently empty.");
-            return;
+    /**
+     * GUI for Managing Deck including addition and removal of cards.
+     * @param parent the JFrame MainGUI
+     * @param collection the collection of the user
+     */
+    public void viewDeckGUI(JFrame parent, ArrayList<Card> collection) {
+        JDialog dialog = new JDialog(parent, "Manage Deck: " + name, true);
+        dialog.setSize(800, 500);
+        dialog.setLayout(new BorderLayout());
+
+        // Sort deck cards
+        ArrayList<Card> sortedDeck = new ArrayList<>(cards);
+        sortedDeck.sort(Comparator.comparing(Card::getName, String.CASE_INSENSITIVE_ORDER));
+
+        // Deck card list
+        DefaultListModel<Card> deckModel = new DefaultListModel<>();
+        for (Card c : sortedDeck) deckModel.addElement(c);
+        JList<Card> deckList = new JList<>(deckModel);
+        deckList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        deckList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            JLabel label = new JLabel(value.getName());
+            if (isSelected) label.setBackground(Color.LIGHT_GRAY);
+            label.setOpaque(true);
+            return label;
+        });
+
+        // Collection card list
+        DefaultListModel<Card> collectionModel = new DefaultListModel<>();
+        for (Card c : collection) {
+            if (c.getCount() > 0) collectionModel.addElement(c);
         }
+        JList<Card> collectionList = new JList<>(collectionModel);
+        collectionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        collectionList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            JLabel label = new JLabel(value.getName() + " (x" + value.getCount() + ")");
+            if (isSelected) label.setBackground(Color.CYAN);
+            label.setOpaque(true);
+            return label;
+        });
 
-        ArrayList<Card> sorted = new ArrayList<>(cards);
-        Collections.sort(sorted, Comparator.comparing(Card::getName, String.CASE_INSENSITIVE_ORDER));
+        // Buttons
+        JButton addBtn = new JButton("Add to Deck →");
+        JButton removeBtn = new JButton("← Remove from Deck");
+        JButton closeBtn = new JButton("Close");
 
-        boolean viewing = true;
-        while (viewing) {
-            System.out.println("\nCards in Deck \"" + name + "\":");
-            for (int i = 0; i < sorted.size(); i++) {
-                Card card = sorted.get(i);
-                System.out.println((i + 1) + ". " + card.getName());
+        addBtn.addActionListener(e -> {
+            Card selected = collectionList.getSelectedValue();
+            if (selected != null && selected.getCount() > 0) {
+                Card toAdd = new Card(selected.getName(), selected.getRarity(), selected.getVariant(), selected.getBaseValue());
+                addCard(toAdd);
+                selected.decreaseCount();
+                deckModel.addElement(toAdd);
+
+                collectionModel.removeElement(selected);
+                if (selected.getCount() > 0) {
+                    collectionModel.addElement(selected);
+                }
             }
+        });
 
-            System.out.print("Enter number to view card details, R to remove a card, or 0 to go back: ");
-            String input = scanner.nextLine().trim();
+        removeBtn.addActionListener(e -> {
+            Card selected = deckList.getSelectedValue();
+            if (selected != null) {
+                int indexInDeck = cards.indexOf(selected);
+                if (removeCardByIndex(indexInDeck)) {
+                    deckModel.removeElement(selected);
 
-            if (input.equalsIgnoreCase("0")) {
-                viewing = false;
-            } else if (input.equalsIgnoreCase("R")) {
-                System.out.print("Enter number of the card to remove: ");
-                try {
-                    int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
-                    if (idx >= 0 && idx < sorted.size()) {
-                        Card removed = sorted.get(idx);
-                        if (removeCardByIndex(cards.indexOf(removed))) {
-                            int foundIndex = getCardIndexByName(collection, removed.getName());
-                            if (foundIndex != -1) {
-                                collection.get(foundIndex).increaseCount();
-                            } else {
-                                collection.add(new Card(removed.getName(), removed.getRarity(), removed.getVariant(), removed.getBaseValue()));
-                            }
-                            sorted.remove(idx);
+                    // Restore count to collection
+                    boolean found = false;
+                    for (Card c : collection) {
+                        if (c.getName().equalsIgnoreCase(selected.getName())) {
+                            c.increaseCount();
+                            found = true;
+                            break;
                         }
-                    } else {
-                        System.out.println("Invalid number.");
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input.");
-                }
-            } else {
-                try {
-                    int index = Integer.parseInt(input);
-                    if (index >= 1 && index <= sorted.size()) {
-                        printCardAsTable(sorted.get(index - 1));
-                    } else {
-                        System.out.println("Invalid number.");
+                    if (!found) {
+                        collection.add(selected);
+                        selected.setCount(1);
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input.");
+                    collectionModel.removeAllElements();
+                    for (Card c : collection) {
+                        if (c.getCount() > 0) collectionModel.addElement(c);
+                    }
                 }
             }
-        }
+        });
+
+        closeBtn.addActionListener(e -> dialog.dispose());
+
+        // Layout
+        JPanel centerPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        centerPanel.add(new JScrollPane(collectionList));
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        buttonPanel.add(addBtn);
+        buttonPanel.add(removeBtn);
+        centerPanel.add(buttonPanel);
+        centerPanel.add(new JScrollPane(deckList));
+
+        dialog.add(centerPanel, BorderLayout.CENTER);
+        dialog.add(closeBtn, BorderLayout.SOUTH);
+
+        dialog.setLocationRelativeTo(parent);
+        dialog.setVisible(true);
     }
 
+    /**
+     * Helper method that gets a card's index using its name
+     * @param list the list of cards in a deck
+     * @param name the name of the card
+     * @return
+     */
     private int getCardIndexByName(ArrayList<Card> list, String name) {
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getName().equalsIgnoreCase(name)) {
@@ -128,6 +205,10 @@ public abstract class Deck {
         return -1;
     }
 
+    /**
+     * A method displaying the card in table format
+     * @param card
+     */
     private void printCardAsTable(Card card) {
         String border = "+---------------------------+";
         System.out.println(border);
@@ -165,3 +246,4 @@ public abstract class Deck {
         return cards;
     }
 }
+
