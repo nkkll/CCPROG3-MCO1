@@ -6,24 +6,24 @@ import java.util.Scanner;
 public class BinderGUI extends JDialog {
     private final ArrayList<Binder> binders;
     private final Collector collector;
+    private final Runnable onBinderChanged;
 
-    public BinderGUI(JFrame parent, ArrayList<Binder> binders, Collector collector) {
+    public BinderGUI(JFrame parent, ArrayList<Binder> binders, Collector collector, Runnable onBinderChanged) {
         super(parent, "Manage Binders", true);
         this.binders = binders;
         this.collector = collector;
+        this.onBinderChanged = onBinderChanged;
 
         setSize(500, 400);
         setLocationRelativeTo(parent);
         setLayout(new GridLayout(6, 1, 10, 10));
 
-        addButton("Create Binder", this::createBinder);
+        addButton("Create Binder", () -> showCreateBinderDialog(this, binders, onBinderChanged));
         addButton("Manage Binder", this::manageBinder);
         addButton("Delete Binder", this::deleteBinder);
         addButton("Trade Card", this::tradeCard);
         addButton("Sell Binder", this::sellBinder);
         addButton("Close", this::dispose);
-
-        setVisible(true);
     }
 
     private void addButton(String label, Runnable action) {
@@ -32,19 +32,24 @@ public class BinderGUI extends JDialog {
         add(button);
     }
 
-    private void createBinder() {
-        String name = JOptionPane.showInputDialog(this, "Enter binder name:");
+    public static void showBinderMenu(JFrame parent, ArrayList<Binder> binders, Collector collector, Runnable onBinderChanged) {
+        BinderGUI dialog = new BinderGUI(parent, binders, collector, onBinderChanged);
+        dialog.setVisible(true);
+    }
+
+    public static void showCreateBinderDialog(Component parent, ArrayList<Binder> binders, Runnable onBinderChanged) {
+        String name = JOptionPane.showInputDialog(parent, "Enter binder name:");
         if (name == null || name.trim().isEmpty()) return;
 
         for (Binder b : binders) {
             if (b.getName().equalsIgnoreCase(name)) {
-                JOptionPane.showMessageDialog(this, "Binder with that name already exists.");
+                JOptionPane.showMessageDialog(parent, "Binder with that name already exists.");
                 return;
             }
         }
 
         String[] types = {"Non-Curated Binder", "Pauper Binder", "Rares Binder", "Luxury Binder", "Collector Binder"};
-        int choice = JOptionPane.showOptionDialog(this, "Select binder type:", "Binder Type",
+        int choice = JOptionPane.showOptionDialog(parent, "Select binder type:", "Binder Type",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, types, types[0]);
 
@@ -59,7 +64,10 @@ public class BinderGUI extends JDialog {
 
         if (newBinder != null) {
             binders.add(newBinder);
-            JOptionPane.showMessageDialog(this, newBinder.getClass().getSimpleName() + " created.");
+            JOptionPane.showMessageDialog(parent, newBinder.getClass().getSimpleName() + " created.");
+            if (onBinderChanged != null) {
+                onBinderChanged.run(); 
+            }
         }
     }
 
