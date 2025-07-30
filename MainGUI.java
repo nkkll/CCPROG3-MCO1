@@ -11,6 +11,7 @@ public class MainGUI extends JFrame {
     private Collector collector;
     private ArrayList<Deck> decks;
     private ArrayList<Binder> binders;
+    private JPanel buttonPanel;
 
     public MainGUI() {
         collector = new Collector(); 
@@ -43,21 +44,12 @@ public class MainGUI extends JFrame {
         add(leftPanel, BorderLayout.CENTER);
 
         // Right panel with buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(0, 1, 10, 10));
+        buttonPanel = new JPanel(new GridLayout(0, 1, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(40, 20, 40, 40));
-
-        addButton(buttonPanel, "Add a Card", () -> collector.getCollection().addCardToCollection(this));
-        addButton(buttonPanel, "View Collection", () -> collector.getCollection().showCollection(this));
-        addButton(buttonPanel, "Binders", () -> new BinderGUI(this, binders, collector));
-        addButton(buttonPanel, "Decks", this::handleDecksMenu);
-        addButton(buttonPanel, "Sell Card", this::sellCardFromCollection);
-        addButton(buttonPanel, "View Money", () -> {
-            double money = collector.getMoney();
-            JOptionPane.showMessageDialog(this, String.format("You have $%.2f", money), "Money", JOptionPane.INFORMATION_MESSAGE);
-        });
-        addButton(buttonPanel, "Exit", () -> System.exit(0));
-
         add(buttonPanel, BorderLayout.EAST);
+
+        refreshButtonPanel();
+        
         setVisible(true);
     }
 
@@ -70,8 +62,67 @@ public class MainGUI extends JFrame {
      */
     private void addButton(JPanel panel, String label, Runnable action) {
         JButton button = new JButton(label);
+
+        button.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        button.setFocusPainted(false);
+        button.setBackground(Color.WHITE);
+        button.setOpaque(true);
+        button.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         button.addActionListener(e -> action.run());
         panel.add(button);
+    }
+
+    private void refreshButtonPanel() {
+        buttonPanel.removeAll();
+
+        boolean hasCards = !collector.getCollection().getCards().isEmpty();
+        boolean hasBinders = !binders.isEmpty();
+        boolean hasDecks = !decks.isEmpty();
+
+        addButton(buttonPanel, "Add a Card", () -> {
+            collector.getCollection().addCardToCollection(this);
+            refreshButtonPanel();
+        });
+
+        if (hasCards) {
+            addButton(buttonPanel, "Modify Card Count", () -> collector.getCollection().modifyCardCount(this));
+        }
+
+        if (binders.isEmpty()) {
+            addButton(buttonPanel, "Create Binder", () ->
+                    BinderGUI.showCreateBinderDialog(this, binders, this::refreshButtonPanel)
+            );
+        } else {
+            addButton(buttonPanel, "Manage Binders", () ->
+                    BinderGUI.showBinderMenu(this, binders, collector, this::refreshButtonPanel)
+            );
+        }
+
+
+        addButton(buttonPanel, hasDecks ? "Manage Decks" : "Create a new Deck", () -> {
+            if (hasDecks) {
+                handleDecksMenu();
+            } else {
+                createDeck();
+                refreshButtonPanel();
+            }
+        });
+
+        if (hasCards) {
+            addButton(buttonPanel, "Sell Card", this::sellCardFromCollection);
+        }
+
+        addButton(buttonPanel, "View Collection", () -> collector.getCollection().showCollection(this));
+
+        addButton(buttonPanel, "View Money", () -> {
+            double money = collector.getMoney();
+            JOptionPane.showMessageDialog(this, String.format("You have $%.2f", money), "Money", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        addButton(buttonPanel, "Exit", () -> System.exit(0));
+
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
     }
 
     /**
@@ -85,7 +136,10 @@ public class MainGUI extends JFrame {
                 null, options, options[0]);
 
         switch (choice) {
-            case 0 -> createDeck();
+            case 0 -> {
+                createDeck();
+                refreshButtonPanel();
+            }
             case 1 -> manageDeck();
             case 2 -> deleteDeck();
             case 3 -> sellDeck();
