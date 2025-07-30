@@ -1,7 +1,19 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Scanner;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import java.awt.GridLayout;
+import java.awt.Color;
+import java.awt.BorderLayout;
 
 /**
  * Abstract class representing a card deck.
@@ -203,28 +215,6 @@ public abstract class Deck {
             }
         }
         return -1;
-    }
-
-    /**
-     * A method displaying the card in table format
-     * @param card
-     */
-    private void printCardAsTable(Card card) {
-        String border = "+---------------------------+";
-        System.out.println(border);
-        System.out.printf("| %-25s |\n", card.getName().toUpperCase());
-        System.out.println(border);
-        System.out.printf("| Rarity  : %-14s |\n", capitalize(card.getRarity()));
-        System.out.printf("| Variant : %-14s |\n", capitalize(card.getVariant()));
-        System.out.printf("| Base $  : $%-13.2f |\n", card.getBaseValue());
-        System.out.printf("| Value   : $%-13.2f |\n", card.getActualValue());
-        System.out.printf("| Count   : %-14d |\n", card.getCount());
-        System.out.println(border);
-    }
-
-    private String capitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
     public boolean containsCard(String cardName) {

@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 /**
  * Graphical User Interface (GUI) entry point for the Trading Card Inventory System.
@@ -50,7 +48,7 @@ public class MainGUI extends JFrame {
 
         addButton(buttonPanel, "Add a Card", () -> collector.getCollection().addCardToCollection(this));
         addButton(buttonPanel, "View Collection", () -> collector.getCollection().showCollection(this));
-        addButton(buttonPanel, "Binders", () -> Binder.openBinderMenu(binders, collector.getCollection().getCards(), collector, null));
+        addButton(buttonPanel, "Binders", () -> new BinderGUI(this, binders, collector));
         addButton(buttonPanel, "Decks", this::handleDecksMenu);
         addButton(buttonPanel, "Sell Card", this::sellCardFromCollection);
         addButton(buttonPanel, "View Money", () -> {

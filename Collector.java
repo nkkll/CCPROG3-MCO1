@@ -18,7 +18,7 @@ public class Collector {
      * @param scanner Scanner used to pass to Collection.
      */
     public Collector(Scanner scanner) {
-        this.collection = new Collection(new ArrayList<Card>(), scanner);
+        this.collection = new Collection(new ArrayList<>());
         this.money = 0.0;
     }
 
@@ -26,7 +26,7 @@ public class Collector {
      * Default constructor for GUI usage (no Scanner input).
      */
     public Collector() {
-        this.collection = new Collection(new ArrayList<Card>(), null);
+        this.collection = new Collection(new ArrayList<>());
         this.money = 0.0;
     }
 
