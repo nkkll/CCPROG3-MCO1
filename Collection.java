@@ -96,6 +96,32 @@ public class Collection {
         }
     }
 
+     public void modifyCardCount(JFrame parent) {
+        if (collection.isEmpty()) {
+            JOptionPane.showMessageDialog(parent, "No cards in collection.");
+            return;
+        }
+
+        String[] cardNames = collection.stream().map(Card::getName).toArray(String[]::new);
+        String selected = (String) JOptionPane.showInputDialog(parent, "Select card:",
+                "Modify Card Count", JOptionPane.PLAIN_MESSAGE, null, cardNames, cardNames[0]);
+
+        if (selected == null) return;
+
+        Card card = collection.stream().filter(c -> c.getName().equals(selected)).findFirst().orElse(null);
+        if (card == null) return;
+
+        String countStr = JOptionPane.showInputDialog(parent, "Current count: " + card.getCount() + "\nEnter new count:");
+        if (countStr == null) return;
+
+        try {
+            int newCount = Integer.parseInt(countStr);
+            card.setCount(newCount);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(parent, "Invalid number.");
+        }
+    }
+
         /**
          * Finds a card by its name.
          */
